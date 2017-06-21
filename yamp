@@ -1,0 +1,42 @@
+#!/bin/sh
+FOLDER=${1:-.} 
+THEME=${2:-metropolis}
+
+# print help text
+if [ "$1" == "--help" ]; then 
+    cat << EOF
+Usage: ${0##*/} [FILE|FOLDER] [THEME] 
+Yet another markdown presenter.
+
+  FOLDER      Convert all markdown file in the given folder to pdf files. 
+  FILE        Just convert the given markdown file. 
+  THEME       Use the given theme for the presentation.
+
+EOF
+    exit
+fi
+
+# get files to process
+if [ -d "$FOLDER" ]; then 
+    FILES=`ls $FOLDER/*.md 2> /dev/null`
+else 
+    FILES=`echo $FOLDER`
+fi
+
+# check if any files are there
+if [ -z "$FILES" ]; then 
+    echo "=> The directory does not contain any markdown files."
+    exit 1
+fi
+
+# convert markdown files into pdf
+for md in $FILES; do
+    pdf=`echo "$md" | sed -e "s/md/pdf/"`
+    echo "=> Convert $md"
+
+    if [ -d "$HOME/texmf/tex/latex/$THEME" ]; then
+        pandoc -t beamer "$md" -V "theme:$THEME" -o "$pdf"
+    else
+        pandoc -t beamer "$md" -o "$pdf"
+    fi
+done
